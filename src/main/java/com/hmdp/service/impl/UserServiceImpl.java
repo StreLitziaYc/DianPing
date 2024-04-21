@@ -6,11 +6,13 @@ import com.hmdp.Constant.MessageConstant;
 import com.hmdp.Constant.SessionConstant;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
+import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.User;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.RegexUtils;
 import com.hmdp.Constant.SystemConstants;
+import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +44,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         //发送验证码
         log.info("发送验证码：{}", code);
         return Result.ok();
+    }
+
+    @Override
+    public UserDTO me() {
+        return UserHolder.getUser();
     }
 
     @Override
