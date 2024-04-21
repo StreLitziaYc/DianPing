@@ -85,4 +85,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         save(user);
         return user;
     }
+
+    @Override
+    public void logout() {
+        UserHolder.removeUser();
+    }
 }
