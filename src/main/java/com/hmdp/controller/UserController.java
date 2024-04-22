@@ -7,6 +7,7 @@ import com.hmdp.entity.UserInfo;
 import com.hmdp.service.IUserInfoService;
 import com.hmdp.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -53,9 +54,9 @@ public class UserController {
      * @return 无
      */
     @PostMapping("/logout")
-    public Result logout(HttpSession session){
-        userService.logout();
-        session.invalidate();
+    public Result logout(@RequestHeader HttpHeaders headers){
+        log.info("登出");
+        userService.logout(headers);
         return Result.ok();
     }
 

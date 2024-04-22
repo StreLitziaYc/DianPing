@@ -5,6 +5,7 @@ import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.User;
+import org.springframework.http.HttpHeaders;
 
 import javax.servlet.http.HttpSession;
 
@@ -24,5 +25,5 @@ public interface IUserService extends IService<User> {
 
     UserDTO me();
 
-    void logout();
+    void logout(HttpHeaders headers);
 }
