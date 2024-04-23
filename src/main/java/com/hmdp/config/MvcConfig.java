@@ -1,6 +1,7 @@
 package com.hmdp.config;
 
 import com.hmdp.Interceptor.LoginInterceptor;
+import com.hmdp.Interceptor.RefreshTokenInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class MvcConfig implements WebMvcConfigurer {
     @Autowired
     LoginInterceptor loginInterceptor;
+
+    @Autowired
+    RefreshTokenInterceptor refreshTokenInterceptor;
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         log.info("开始注册拦截器");
@@ -22,6 +26,7 @@ public class MvcConfig implements WebMvcConfigurer {
                 "/shop/**",
                 "/shop-type/**",
                 "/upload/**",
-                "/voucher/**");
+                "/voucher/**").order(1);
+        registry.addInterceptor(refreshTokenInterceptor).order(0);
     }
 }
