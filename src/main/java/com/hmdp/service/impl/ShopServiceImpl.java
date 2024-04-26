@@ -36,6 +36,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     }
 
     @Override
+    @Transactional
     public Result queryById(Long id) {
         Shop shop = cacheClient.queryWithLogicalExpire(
                 RedisConstants.LOGICAL_CASH_SHOP_KEY, id, Shop.class, this::dbQueryById,

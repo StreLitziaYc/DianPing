@@ -19,6 +19,6 @@ public class ShopServiceTest {
     @Test
     public void preload() {
         Shop shop = shopService.getById(1);
-        cacheClient.setWithLogicalExpire(RedisConstants.LOGICAL_CASH_SHOP_KEY + 1, shop, RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
+        cacheClient.setWithLogicalExpire(RedisConstants.LOGICAL_CASH_SHOP_KEY + 1, shop, 2L, TimeUnit.SECONDS);
     }
 }
