@@ -208,6 +208,18 @@ public class CacheClient {
         return data;
     }
 
+    /**
+     * 使用互斥锁来防止缓存击穿
+     * @param keyPrefix key的前缀
+     * @param id 查询id
+     * @param type 实体类型
+     * @param dbFallBack 查询方法
+     * @param time 缓存时间
+     * @param unit 时间单位
+     * @return 查询数据
+     * @param <T> 实体类型
+     * @param <ID> id类型
+     */
     public <T, ID> T queryWithMutex(String keyPrefix, ID id, Class<T> type, Function<ID, T> dbFallBack, Long time, TimeUnit unit) {
         // 获取缓存
         String key = keyPrefix + id;
