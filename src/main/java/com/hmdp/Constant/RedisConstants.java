@@ -11,9 +11,10 @@ public class RedisConstants {
 
     public static final Long CACHE_SHOP_TTL = 30L;
     public static final String CACHE_SHOP_KEY = "cache:shop:";
+    public static final String LOGICAL_CASH_SHOP_KEY = "logical:cache:shop:";
     public static final String CACHE_SHOP_TYPE_KEY = "cache:shop:type";
-
-    public static final String LOCK_SHOP_KEY = "lock:shop:";
+    public static final String LOCK_KEY = "lock:";
+    public static final String LOCK_VALUE = "1";
     public static final Long LOCK_SHOP_TTL = 10L;
 
     public static final String SECKILL_STOCK_KEY = "seckill:stock:";

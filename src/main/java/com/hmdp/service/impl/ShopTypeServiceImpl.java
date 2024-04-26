@@ -7,6 +7,7 @@ import com.hmdp.Constant.RedisConstants;
 import com.hmdp.entity.ShopType;
 import com.hmdp.mapper.ShopTypeMapper;
 import com.hmdp.service.IShopTypeService;
+import com.hmdp.utils.CacheClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -29,30 +30,16 @@ public class ShopTypeServiceImpl extends ServiceImpl<ShopTypeMapper, ShopType> i
     @Autowired
     StringRedisTemplate redisTemplate;
 
+    @Autowired
+    CacheClient cacheClient;
+
+    private List<ShopType> dbQueryList() {
+        return query().orderByAsc("sort").list();
+    }
+
     @Override
     public List<ShopType> queryList() {
-        //查询缓存
-        String key = RedisConstants.CACHE_SHOP_TYPE_KEY;
-        List<String> typeStringList = redisTemplate.opsForList().range(key, 0L, -1L);
-        //判断是否命中
-        if (typeStringList != null && !typeStringList.isEmpty()) {
-            //命中
-            return typeStringList.stream()
-                    .map((typeString) -> JSONUtil.toBean(typeString, ShopType.class))
-                    .collect(Collectors.toList());
-        }
-        //未命中，进行查询
-        List<ShopType> typeList = query().orderByAsc("sort").list();
-        //存入缓存
-        typeStringList = typeList.stream()
-                .map((shopType) -> JSONUtil.toJsonStr(shopType))
-                .collect(Collectors.toList());
-        redisTemplate.opsForList().leftPushAll(key, typeStringList);
-        //N+n防止缓存雪崩
-        redisTemplate.expire(key,
-                RedisConstants.CACHE_SHOP_TTL + RandomUtil.randomLong(RedisConstants.CACHE_SHOP_TTL),
-                TimeUnit.MINUTES);
         //返回数据
-        return typeList;
+        return cacheClient.query(RedisConstants.CACHE_SHOP_TYPE_KEY, List.class, this::dbQueryList, RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
     }
 }
