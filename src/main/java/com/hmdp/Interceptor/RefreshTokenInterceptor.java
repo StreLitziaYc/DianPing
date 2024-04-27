@@ -2,8 +2,8 @@ package com.hmdp.Interceptor;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
-import com.hmdp.Constant.HeaderConstants;
-import com.hmdp.Constant.RedisConstants;
+import com.hmdp.constant.HeaderConstants;
+import com.hmdp.constant.RedisConstants;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.utils.UserHolder;
 import org.springframework.beans.factory.annotation.Autowired;

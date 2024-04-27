@@ -1,4 +1,4 @@
-package com.hmdp.Constant;
+package com.hmdp.constant;
 
 public class MessageConstant {
     public static final String PHONG_ERROR = "手机号格式错误！";

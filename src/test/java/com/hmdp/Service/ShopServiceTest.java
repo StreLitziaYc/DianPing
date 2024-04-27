@@ -1,6 +1,6 @@
 package com.hmdp.Service;
 
-import com.hmdp.Constant.RedisConstants;
+import com.hmdp.constant.RedisConstants;
 import com.hmdp.entity.Shop;
 import com.hmdp.service.IShopService;
 import com.hmdp.utils.CacheClient;

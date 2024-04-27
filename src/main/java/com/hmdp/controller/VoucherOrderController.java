@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/voucher-order")
 public class VoucherOrderController {
+    // TODO 抢购消费券功能
     @PostMapping("seckill/{id}")
     public Result seckillVoucher(@PathVariable("id") Long voucherId) {
         return Result.fail("功能未完成");

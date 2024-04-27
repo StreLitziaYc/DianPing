@@ -1,8 +1,8 @@
 package com.hmdp.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.hmdp.Constant.MessageConstant;
-import com.hmdp.Constant.RedisConstants;
+import com.hmdp.constant.MessageConstant;
+import com.hmdp.constant.RedisConstants;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.Shop;
 import com.hmdp.mapper.ShopMapper;
