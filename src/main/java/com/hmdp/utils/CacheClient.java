@@ -1,6 +1,5 @@
 package com.hmdp.utils;
 
-import cn.hutool.core.lang.mutable.Mutable;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
@@ -24,11 +23,10 @@ import java.util.function.Supplier;
 @Component
 @Slf4j
 public class CacheClient {
-    @Autowired
-    StringRedisTemplate redisTemplate;
-
     //线程池
     private static final ExecutorService CACHE_EXECUTOR = Executors.newSingleThreadExecutor();
+    @Autowired
+    StringRedisTemplate redisTemplate;
 
     /**
      * 普通写入缓存
@@ -62,13 +60,14 @@ public class CacheClient {
 
     /**
      * 不需要id的查询
-     * @param key key
-     * @param type 返回值的类型
+     *
+     * @param key        key
+     * @param type       返回值的类型
      * @param dbFallBack 查询函数
-     * @param time 缓存时间
-     * @param unit 时间单位
+     * @param time       缓存时间
+     * @param unit       时间单位
+     * @param <T>        实体类型
      * @return 查询结果
-     * @param <T> 实体类型
      */
     public <T> T query(String key, Class<T> type, Supplier<T> dbFallBack, Long time, TimeUnit unit) {
         //查询redis中是否有需要的数据
@@ -139,7 +138,8 @@ public class CacheClient {
         //返回
         return res;
     }
-    private <T> boolean checkLogicalExpire (String key, Class<T> type, AtomicReference<T> dataHolder) {
+
+    private <T> boolean checkLogicalExpire(String key, Class<T> type, AtomicReference<T> dataHolder) {
         String redisDataJson = redisTemplate.opsForValue().get(key);
         //命中，判断缓存是否过期
         RedisData redisData = JSONUtil.toBean(redisDataJson, RedisData.class, false);
@@ -152,6 +152,7 @@ public class CacheClient {
         }
         return true;
     }
+
     /**
      * 逻辑过期缓存查询，防止缓存击穿
      *
@@ -195,13 +196,17 @@ public class CacheClient {
                 return data;
             }
             CACHE_EXECUTOR.submit(() -> {
-                //double check
-                //重建缓存
-                log.warn("重建逻辑过期缓存！");
-                T value = dbFallBack.apply(id);
-                setWithLogicalExpire(key, value, time,unit);
-                //释放锁
-                unLock(lockKey);
+                try {
+                    //重建缓存
+                    log.warn("重建逻辑过期缓存！");
+                    T value = dbFallBack.apply(id);
+                    setWithLogicalExpire(key, value, time, unit);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    //释放锁
+                    unLock(lockKey);
+                }
             });
         }
         //返回当前缓存信息
@@ -210,15 +215,16 @@ public class CacheClient {
 
     /**
      * 使用互斥锁来防止缓存击穿
-     * @param keyPrefix key的前缀
-     * @param id 查询id
-     * @param type 实体类型
+     *
+     * @param keyPrefix  key的前缀
+     * @param id         查询id
+     * @param type       实体类型
      * @param dbFallBack 查询方法
-     * @param time 缓存时间
-     * @param unit 时间单位
+     * @param time       缓存时间
+     * @param unit       时间单位
+     * @param <T>        实体类型
+     * @param <ID>       id类型
      * @return 查询数据
-     * @param <T> 实体类型
-     * @param <ID> id类型
      */
     public <T, ID> T queryWithMutex(String keyPrefix, ID id, Class<T> type, Function<ID, T> dbFallBack, Long time, TimeUnit unit) {
         // 获取缓存
@@ -256,7 +262,7 @@ public class CacheClient {
             set(key, res, time, unit);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        }finally {
+        } finally {
             //释放锁
             unLock(lockKey);
         }
