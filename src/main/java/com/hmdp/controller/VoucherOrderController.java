@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class VoucherOrderController {
     @Autowired
     IVoucherOrderService voucherOrderService;
-    // TODO 抢购消费券功能
+
     @PostMapping("seckill/{id}")
     public Result seckillVoucher(@PathVariable("id") Long voucherId) {
         return voucherOrderService.seckillVoucher(voucherId);
