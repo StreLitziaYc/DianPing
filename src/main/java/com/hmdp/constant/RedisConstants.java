@@ -8,7 +8,7 @@ public class RedisConstants {
     public static final String NULL_KEY = "";
     public static final String NULL_VALUE = "";
     public static final Long CACHE_NULL_TTL = 2L;
-
+    public static final String ORDER_ID_PREFIX = "order:";
     public static final Long CACHE_SHOP_TTL = 30L;
     public static final String CACHE_SHOP_KEY = "cache:shop:";
     public static final String LOGICAL_CASH_SHOP_KEY = "logical:cache:shop:";
