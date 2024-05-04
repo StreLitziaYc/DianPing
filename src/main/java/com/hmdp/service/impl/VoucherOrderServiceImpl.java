@@ -13,6 +13,7 @@ import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.ILock;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
+import com.hmdp.utils.lockImpl.LuaScriptRedisLock;
 import com.hmdp.utils.lockImpl.SimpleRedisLock;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +58,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             return Result.fail(MessageConstant.STOCK_NOT_ENOUGH);
         }
         String lockName = LockConstant.LOCK + UserHolder.getUser().getId().toString();
-        ILock lock = new SimpleRedisLock(lockName, redisTemplate); // 悲观锁
+        ILock lock = new LuaScriptRedisLock(lockName, redisTemplate); // 悲观锁
         if (!lock.tryLock(LockConstant.LOCK_TTL)) {
             //未成功获取锁
 

@@ -5,28 +5,36 @@ import com.hmdp.utils.ILock;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.annotation.Resource;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class SimpleRedisLock implements ILock {
-    @Resource
-    StringRedisTemplate redisTemplate;
-
-    private String lockName;
+public class SimpleRedisLock extends ILock {
     private static final String LOCK_PREFIX = "lock:";
+    private static final String ID_PREFIX = UUID.randomUUID().toString();
+    private final String lockName;
+    StringRedisTemplate redisTemplate;
 
     public SimpleRedisLock(String lockName, StringRedisTemplate redisTemplate) {
         this.lockName = lockName;
         this.redisTemplate = redisTemplate;
     }
-    @Override
+
     public boolean tryLock(long timeoutSec) {
-        String value = String.valueOf(Thread.currentThread().getId());
-        Boolean success = redisTemplate.opsForValue().setIfAbsent(LOCK_PREFIX + lockName, value, timeoutSec, TimeUnit.MINUTES);
+        //获取线程标识
+        String threadId = ID_PREFIX + "-" + Thread.currentThread().getId();
+        //尝试获取锁
+        Boolean success = redisTemplate.opsForValue().setIfAbsent(LOCK_PREFIX + lockName, threadId, timeoutSec, TimeUnit.MINUTES);
         return BooleanUtil.isTrue(success);
     }
 
-    @Override
+
     public void unlock() {
-        redisTemplate.delete(LOCK_PREFIX + lockName);
+        String key = LOCK_PREFIX + lockName;
+        //获取线程标识
+        String threadId = ID_PREFIX + "-" + Thread.currentThread().getId();
+        //判断是否是对应的线程
+        if (threadId.equals(redisTemplate.opsForValue().get(key))) {
+            redisTemplate.delete(key);
+        }
     }
 }
