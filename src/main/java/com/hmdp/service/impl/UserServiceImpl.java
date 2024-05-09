@@ -89,13 +89,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         // 保存用户信息到redis
         // 随机生成token，作为登陆令牌
-        // TODO 这里的token可以包含用户信息的token
         String token = UUID.randomUUID().toString(true);
         // 将User对象转换为hash存储
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
         Map<String, Object> userMap = BeanUtil.beanToMap(userDTO, new HashMap<>(),
                 CopyOptions.create()
-                        .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
+                        .setFieldValueEditor((fieldName, fieldValue) -> fieldValue == null ? "" : fieldValue.toString()));
         // 存储到redis
         stringRedisTemplate.opsForHash().putAll(RedisConstants.LOGIN_USER_KEY + token, userMap);
         // 设置过期时间

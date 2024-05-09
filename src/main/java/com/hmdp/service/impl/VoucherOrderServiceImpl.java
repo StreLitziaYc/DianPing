@@ -14,13 +14,17 @@ import com.hmdp.utils.ILock;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
 import com.hmdp.utils.lockImpl.LuaScriptRedisLock;
+import com.hmdp.utils.lockImpl.RedissonLock;
 import com.hmdp.utils.lockImpl.SimpleRedisLock;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 
 /**
@@ -58,10 +62,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             return Result.fail(MessageConstant.STOCK_NOT_ENOUGH);
         }
         String lockName = LockConstant.LOCK + UserHolder.getUser().getId().toString();
-        ILock lock = new LuaScriptRedisLock(lockName, redisTemplate); // 悲观锁
+        ILock lock = new RedissonLock(lockName); // 悲观锁
         if (!lock.tryLock(LockConstant.LOCK_TTL)) {
             //未成功获取锁
-
             return Result.fail(MessageConstant.REPEAT_PURCHASE);
         }
         try { //悲观锁
