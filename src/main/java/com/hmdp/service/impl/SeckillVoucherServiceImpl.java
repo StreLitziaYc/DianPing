@@ -1,10 +1,14 @@
 package com.hmdp.service.impl;
 
+import com.hmdp.constant.RedisConstants;
 import com.hmdp.entity.SeckillVoucher;
 import com.hmdp.mapper.SeckillVoucherMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <p>
@@ -16,5 +20,11 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper, SeckillVoucher> implements ISeckillVoucherService {
-
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+    @Override
+    @Transactional
+    public void save2Redis(SeckillVoucher seckillVoucher) {
+        Long voucherId = seckillVoucher.getVoucherId();
+        redisTemplate.opsForValue().set(RedisConstants.SECKILL_STOCK_KEY + voucherId, seckillVoucher.getStock().toString());}
 }

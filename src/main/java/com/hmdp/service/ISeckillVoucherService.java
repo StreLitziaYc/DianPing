@@ -12,5 +12,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2022-01-04
  */
 public interface ISeckillVoucherService extends IService<SeckillVoucher> {
-
+    /**
+     * 进行Redis的数据预热
+     * @param seckillVoucher 秒杀优惠券
+     */
+    void save2Redis(SeckillVoucher seckillVoucher);
 }
