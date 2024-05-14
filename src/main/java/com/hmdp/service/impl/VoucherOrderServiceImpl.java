@@ -131,10 +131,10 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         // 判断结果
         if (result == null) throw new LuaScriptException();
         switch (result.intValue()) {
-            case 1 : {
+            case 1 -> {
                 return Result.fail(MessageConstant.STOCK_NOT_ENOUGH);
             }
-            case 2 : {
+            case 2 ->{
                 return Result.fail(MessageConstant.REPEAT_PURCHASE);
             }
         }
