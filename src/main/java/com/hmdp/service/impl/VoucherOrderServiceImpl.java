@@ -299,7 +299,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                     );
                     // 判断消息是否获取成功
                     if (pendingMessages.isEmpty()) {
-                        continue;
+                        break;
                     }
                     // 解析消息中的订单信息
                     // 将当前消息重新分配给消费者
