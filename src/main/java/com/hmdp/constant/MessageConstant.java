@@ -9,4 +9,5 @@ public class MessageConstant {
     public static final String SECKILL_END = "秒杀已结束！";
     public static final String STOCK_NOT_ENOUGH = "库存不足！";
     public static final String REPEAT_PURCHASE = "请勿重复购买！";
+    public static final String LIKE_FAILED = "点赞失败！";
 }
