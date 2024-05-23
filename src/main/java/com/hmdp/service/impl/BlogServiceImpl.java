@@ -49,8 +49,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         // 处理用户未登录的情况
         if (UserHolder.getUser() == null) return;
         Long userId = UserHolder.getUser().getId();
-        Boolean isLiked = redisTemplate.opsForSet().isMember(key, userId.toString());
-        blog.setIsLike(isLiked);
+        Double score = redisTemplate.opsForZSet().score(key, userId.toString());
+        blog.setIsLike(score != null);
     }
     private void queryBlogUser(Blog blog) {
         Long userId = blog.getUserId();
@@ -82,13 +82,15 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         Long userId = UserHolder.getUser().getId();
         // 判断是否已点赞
         String key = RedisConstants.BLOG_LIKED_KEY + blogId;
-        Boolean isLiked = redisTemplate.opsForSet().isMember(key, userId.toString());
-        if (BooleanUtil.isFalse(isLiked)) {
+        Double score = redisTemplate.opsForZSet().score(key, userId.toString());
+        // score为空则是不存在
+        if (score == null) {
             // 数据库+1
             boolean success = lambdaUpdate().setSql("liked = liked + 1").eq(Blog::getId, blogId).update();
             // 更新Redis
             if (success) {
-                redisTemplate.opsForSet().add(key, userId.toString());
+                // 使用ZSET是因为后续需要点赞排行榜，此处把时间错作为score
+                redisTemplate.opsForZSet().add(key, userId.toString(), System.currentTimeMillis());
             } else {
                 throw new MySqlException(MessageConstant.LIKE_FAILED);
             }
@@ -97,7 +99,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
             boolean success = lambdaUpdate().setSql("liked = liked - 1").eq(Blog::getId, blogId).update();
             // 更新Redis
             if (success) {
-                redisTemplate.opsForSet().remove(key, userId.toString());
+                redisTemplate.opsForZSet().remove(key, userId.toString());
             } else {
                 throw new MySqlException(MessageConstant.LIKE_FAILED);
             }
