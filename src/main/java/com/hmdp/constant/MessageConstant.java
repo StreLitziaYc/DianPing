@@ -10,4 +10,6 @@ public class MessageConstant {
     public static final String STOCK_NOT_ENOUGH = "库存不足！";
     public static final String REPEAT_PURCHASE = "请勿重复购买！";
     public static final String LIKE_FAILED = "点赞失败！";
+    public static final String FOLLOW_FAILED = "关注失败！";
+    public static final String UNFOLLOW_FAILED = "取关失败！";
 }
