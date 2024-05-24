@@ -1,12 +1,14 @@
 package com.hmdp.service.impl;
 
-import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.constant.MessageConstant;
 import com.hmdp.constant.RedisConstants;
 import com.hmdp.constant.SystemConstants;
 import com.hmdp.dto.Result;
+import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Blog;
 import com.hmdp.entity.User;
 import com.hmdp.exception.MySqlException;
@@ -19,7 +21,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -105,5 +109,27 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
             }
         }
         return Result.ok();
+    }
+
+    @Override
+    public List<UserDTO> queryByLikes(Long id) {
+        String key = RedisConstants.BLOG_LIKED_KEY + id;
+        // 查询Redis中的top5
+        Set<String> top5 = redisTemplate.opsForZSet().range(key, 0, 4);
+        if (top5 == null || top5.isEmpty()) {
+            return Collections.emptyList();
+        }
+        // 解析出用户id
+        List<Long> ids = top5.stream().map(Long::valueOf).toList();
+        // 进行用户查询 where id in (5, 1) order by field(id, 5, 1)
+        // 不能用mybatisplus的默认查询，因为那样的话会有一次对id的排序，使得前面的排序失效
+        String idStr = StrUtil.join(",", ids);
+        List<UserDTO> userDTOS = userService.lambdaQuery()
+                .in(User::getId, ids)
+                .last("order by field(id, " + idStr + ")").list()
+                .stream()
+                .map(user -> BeanUtil.copyProperties(user, UserDTO.class))
+                .toList();
+        return userDTOS;
     }
 }
