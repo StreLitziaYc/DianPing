@@ -12,4 +12,5 @@ public class MessageConstant {
     public static final String LIKE_FAILED = "点赞失败！";
     public static final String FOLLOW_FAILED = "关注失败！";
     public static final String UNFOLLOW_FAILED = "取关失败！";
+    public static final String BLOG_FAILED = "博客发布失败！";
 }

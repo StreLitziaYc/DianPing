@@ -8,22 +8,24 @@ import com.hmdp.constant.MessageConstant;
 import com.hmdp.constant.RedisConstants;
 import com.hmdp.constant.SystemConstants;
 import com.hmdp.dto.Result;
+import com.hmdp.dto.ScrollResult;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Blog;
+import com.hmdp.entity.Follow;
 import com.hmdp.entity.User;
 import com.hmdp.exception.MySqlException;
 import com.hmdp.mapper.BlogMapper;
 import com.hmdp.service.IBlogService;
+import com.hmdp.service.IFollowService;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.UserHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <p>
@@ -39,6 +41,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     IUserService userService;
     @Autowired
     StringRedisTemplate redisTemplate;
+    @Autowired
+    IFollowService followService;
 
     @Override
     public Blog queryById(Long id) {
@@ -131,5 +135,73 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                 .map(user -> BeanUtil.copyProperties(user, UserDTO.class))
                 .toList();
         return userDTOS;
+    }
+
+    @Override
+    @Transactional
+    public Long saveBlog(Blog blog) {
+        // 获取登录用户
+        UserDTO user = UserHolder.getUser();
+        blog.setUserId(user.getId());
+        // 保存探店博文
+        boolean success = save(blog);
+        if (!success) {
+            throw new MySqlException(MessageConstant.BLOG_FAILED);
+        }
+        // 推送给粉丝
+        // 获取粉丝
+        List<Follow> follows = followService.lambdaQuery().eq(Follow::getFollowUserId, user.getId()).list();
+        // 推送
+        follows.forEach(follow -> {
+            String key = RedisConstants.FEED_KEY + follow.getUserId();
+            redisTemplate.opsForZSet().add(key, blog.getId().toString(), System.currentTimeMillis());
+        });
+        // 返回id
+        return blog.getId();
+    }
+
+    @Override
+    public ScrollResult queryBlogOfFollow(Long max, Integer offset) {
+        // 获取当前用户
+        Long userId = UserHolder.getUser().getId();
+        // 查询收件箱
+        String key = RedisConstants.FEED_KEY + userId;
+        Set<ZSetOperations.TypedTuple<String>> typedTuples =
+                redisTemplate.opsForZSet().reverseRangeByScoreWithScores(
+                        key, 0, max, offset, RedisConstants.BLOG_COUNT);
+        // 解析数据
+        if (typedTuples == null || typedTuples.isEmpty()) {
+            return null;
+        }
+        long minTime = System.currentTimeMillis();
+        int nextOffset = 0;
+        List<Long> ids = new ArrayList<>(typedTuples.size());
+        for (ZSetOperations.TypedTuple<String> tuple : typedTuples){
+            ids.add(Long.valueOf(tuple.getValue()));
+            long time = tuple.getScore().longValue();
+            if (minTime == time) {
+                nextOffset++;
+            }else {
+                minTime = time;
+                nextOffset = 0;
+            }
+        }
+        // 根据id查询blog
+        String idStr = StrUtil.join(",", ids);
+        List<Blog> blogs = lambdaQuery()
+                .in(Blog::getId, ids)
+                .last("order by field(id, " + idStr + ")")
+                .list();
+        blogs.forEach(blog -> {
+            setIsLiked(blog);
+            queryBlogUser(blog);
+        });
+        // 封装并返回
+        ScrollResult scrollResult = ScrollResult.builder()
+                .minTime(minTime)
+                .offset(nextOffset)
+                .list(blogs)
+                .build();
+        return scrollResult;
     }
 }
