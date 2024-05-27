@@ -28,4 +28,6 @@ public interface IUserService extends IService<User> {
     void logout(HttpHeaders headers);
 
     void sign();
+
+    Integer signCount();
 }
