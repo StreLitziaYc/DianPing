@@ -26,4 +26,6 @@ public interface IUserService extends IService<User> {
     UserDTO me();
 
     void logout(HttpHeaders headers);
+
+    void sign();
 }

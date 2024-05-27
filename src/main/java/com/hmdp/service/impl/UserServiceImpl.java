@@ -24,6 +24,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -117,5 +119,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         String key = RedisConstants.LOGIN_USER_KEY + headers.getFirst(HeaderConstants.TOKEN);
         stringRedisTemplate.delete(key);
         UserHolder.removeUser();
+    }
+
+    @Override
+    public void sign() {
+        // 获取当前用户
+        Long userId = UserHolder.getUser().getId();
+        // 获取日期
+        LocalDateTime curTime = LocalDateTime.now();
+        // 拼接key
+        String key = RedisConstants.USER_SIGN_KEY +
+                userId +
+                curTime.format(DateTimeFormatter.ofPattern("yyyy:MM"));
+        // 获取是第几天
+        int offsetDay = curTime.getDayOfMonth() - 1;
+        // 写入Redis SETBIT key offset 1
+        stringRedisTemplate.opsForValue().setBit(key, offsetDay, true);
     }
 }

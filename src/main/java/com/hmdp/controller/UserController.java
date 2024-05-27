@@ -100,4 +100,10 @@ public class UserController {
         // 返回
         return Result.ok(userDTO);
     }
+
+    @PostMapping("/sign")
+    public Result sign() {
+        userService.sign();
+        return Result.ok();
+    }
 }
